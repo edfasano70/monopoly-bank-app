@@ -1,0 +1,12 @@
+# Dependencias / build (el stack actual no tiene build)
+node_modules/
+dist/
+
+# Credenciales locales (no versionar)
+api/config.php
+
+# Temporales
+*.log
+.DS_Store
+__pycache__/
+.venv/
