@@ -33,11 +33,21 @@
     app.innerHTML =
       '<main class="min-h-screen bg-slate-950 text-slate-100">' +
       '<div class="mx-auto w-full max-w-md space-y-5 px-4 py-8">' +
-        '<header>' +
+        '<header class="flex items-start justify-between gap-3">' +
           '<div>' +
             '<p class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400">Mi Wallet Monopoly</p>' +
             '<h1 class="mt-2 text-2xl font-black tracking-tight" id="player-name">Cargando...</h1>' +
             '<p id="game-status" class="mt-1 text-xs text-slate-400">Partida <span id="game-code" class="font-mono text-emerald-300">' + M.esc((config.code || '').toUpperCase()) + '</span></p>' +
+          '</div>' +
+          '<div class="relative">' +
+            '<button id="menu-button" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu-panel" class="rounded-xl border border-slate-700 p-2 text-slate-300 hover:bg-slate-900">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>' +
+            '</button>' +
+            '<div id="menu-panel" class="absolute right-0 z-40 mt-2 hidden w-60 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-xl">' +
+              '<a href="' + M.base + '/" class="block px-4 py-3 text-sm text-slate-200 hover:bg-slate-800">Ir a inicio</a>' +
+              '<button id="menu-invite" type="button" class="block w-full px-4 py-3 text-left text-sm text-slate-200 hover:bg-slate-800">Mostrar enlace de invitación</button>' +
+              '<button id="menu-about" type="button" class="block w-full px-4 py-3 text-left text-sm text-slate-200 hover:bg-slate-800">Acerca de...</button>' +
+            '</div>' +
           '</div>' +
         '</header>' +
         '<section class="rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-5 text-white shadow-xl">' +
@@ -104,6 +114,10 @@
     const historyBox = document.getElementById('history');
     const pendingCard = document.getElementById('pending-card');
     const pendingList = document.getElementById('pending-list');
+    const menuButton = document.getElementById('menu-button');
+    const menuPanel = document.getElementById('menu-panel');
+    const menuInvite = document.getElementById('menu-invite');
+    const menuAbout = document.getElementById('menu-about');
 
     let me = null;
     let pending = [];
@@ -411,6 +425,42 @@
 
     fillReasons();
     syncFormState();
+    function closeMenu() {
+      menuPanel.classList.add('hidden');
+      menuButton.setAttribute('aria-expanded', 'false');
+    }
+
+    menuButton.addEventListener('click', function () {
+      const hidden = menuPanel.classList.toggle('hidden');
+      menuButton.setAttribute('aria-expanded', String(!hidden));
+    });
+    document.addEventListener('click', function (event) {
+      if (
+        !menuPanel.classList.contains('hidden') &&
+        !menuPanel.contains(event.target) &&
+        !menuButton.contains(event.target)
+      ) {
+        closeMenu();
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeMenu();
+      }
+    });
+    menuInvite.addEventListener('click', function () {
+      closeMenu();
+      if (!state) {
+        M.toast('La partida todavía está cargando', 'error');
+        return;
+      }
+      M.openInviteModal(state.game.code);
+    });
+    menuAbout.addEventListener('click', function () {
+      closeMenu();
+      M.openAboutModal();
+    });
+
     M.startPolling(refresh, 3000);
   }
 

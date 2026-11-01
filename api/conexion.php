@@ -62,6 +62,20 @@ function requireMethod(string $method): void
     }
 }
 
+function startSession(): void
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+        session_set_cookie_params([
+            'httponly' => true,
+            'samesite' => 'Lax',
+            'secure'   => $https,
+        ]);
+        session_start();
+    }
+}
+
 function normalizeCode(string $code): string
 {
     return strtoupper(trim($code));

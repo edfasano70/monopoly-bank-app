@@ -7,11 +7,12 @@ Banca web para Monopoly: PHP 8 nativo + PDO/MySQL (InnoDB), JS vanilla y Tailwin
 ## Layout
 
 - `index.php` decide la vista por query param: sin params → inicio; `?join=CODE` → alta; `?code=CODE` → banca; `?token=HEX` → jugador. Inyecta `window.MONOPOLY`.
-- `assets/js/common.js` (helpers + inicio/alta), `bank.js`, `player.js`; polling cada 3 s.
+- `assets/js/common.js` (helpers, inicio/alta y modales globales de invitación y “Acerca de…”), `bank.js`, `player.js`; polling cada 3 s.
+- Menú hamburguesa en ambos paneles: ir a inicio, mostrar enlace de invitación (popup) y “Acerca de…” (popup).
 - `assets/js/qrcode.js` (qrcode-generator, MIT) genera el QR del enlace de invitación **en el cliente**; no usar APIs de QR externas.
 - `assets/js/reasons.js` agrupa los motivos en tres flujos: **Banca→Jugador**, **Jugador→Banca** y **Jugador→Jugador**. La Banca puede registrar los tres; el panel del jugador solo muestra los dos últimos.
 - PWA: `manifest.json`, `sw.js`, `offline.html` e íconos (`icon.png`, `icon-192.png`, `icon-512.png`, `icon-180.png`, `icon-maskable-*.png`). El ícono se usa como favicon y en las portadas de inicio/alta.
-- `api/`: `game.php`, `join.php`, `transfer.php`, `status.php`, `approve.php`, `reject.php`, `regenerate.php`, `seeder.php` (CLI) y `conexion.php` (`getPDO`, `jsonResponse`, `readJsonBody`, `normalizeCode`, `isValidCode`).
+- `api/`: `game.php`, `join.php`, `transfer.php`, `status.php`, `approve.php`, `reject.php`, `regenerate.php`, `captcha.php`, `delete_player.php`, `seeder.php` (CLI) y `conexion.php` (`getPDO`, `jsonResponse`, `readJsonBody`, `normalizeCode`, `isValidCode`, `startSession`).
 - Recuperación de acceso: el token se guarda en `localStorage` por código de partida; `?join=` ofrece “Continuar” en el mismo dispositivo. Si se perdió, la Banca regenera el enlace del jugador (`POST /api/regenerate.php`, invalida el anterior) y lo muestra como QR en un popup.
 - `sql/schema.sql`: `games`, `players`, `transactions`, `pending_transfers`. `NULL` en `from_player_id`/`to_player_id` = Banca; `UNIQUE(game_id, name)`; `CHECK(amount > 0)`.
 - `deploy.sh` espejo de `../saludable/deploy.sh`.
@@ -23,6 +24,13 @@ Banca web para Monopoly: PHP 8 nativo + PDO/MySQL (InnoDB), JS vanilla y Tailwin
 - Destinatario: `to_player_id` (jugador) o `to_token=BANK`. `status.php` **nunca** devuelve tokens; `regenerate.php` es la excepción controlada por la Banca.
 - Importe entero `1..1e9`; misma partida; atómico con `FOR UPDATE` + `UPDATE ... AND balance >= ?`; 409 si no alcanza.
 - **Jugador→Jugador iniciado por un jugador queda pendiente**: `transfer.php` responde 202 con `pending`; la Banca aprueba con `approve.php` o rechaza con `reject.php` desde la tarjeta de pendientes. Lo que inicia la Banca se ejecuta al instante.
+
+## Eliminación de jugadores
+
+- Solo desde la Banca, con el código de partida.
+- Requiere un captcha aritmético de un solo uso: `GET /api/captcha.php` guarda la respuesta en sesión; `POST /api/delete_player.php` recibe `game_code`, `player_id` y `captcha_answer`.
+- La eliminación es **permanente** y borra al jugador, sus movimientos en `transactions` y sus solicitudes en `pending_transfers`. El nombre queda libre para volver a unirse.
+- El captcha vence a los 5 minutos y se invalida tras cualquier intento.
 
 ## Comandos
 

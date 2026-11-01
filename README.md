@@ -11,6 +11,8 @@ Banca web para partidas de Monopoly. Permite crear una partida, invitar jugadore
 - Panel de jugador con saldo, transferencias, motivos de pago, historial y solicitudes pendientes.
 - Motivos agrupados en tres flujos: Banca → Jugador, Jugador → Banca y Jugador → Jugador.
 - Las transferencias entre jugadores iniciadas por un jugador quedan pendientes hasta que la Banca las apruebe o rechace.
+- Eliminación de jugadores desde la Banca, con captcha de confirmación. La eliminación borra al jugador, sus movimientos y sus solicitudes pendientes.
+- Menú hamburguesa con acceso a inicio, enlace de invitación en un popup y “Acerca de…”.
 - Recuperación de acceso: el navegador recuerda el jugador en el mismo dispositivo y la Banca puede generar un enlace nuevo (con QR) si se perdió.
 - Actualización automática cada 3 segundos mediante polling.
 - PWA instalable con manifest, service worker y página offline.
@@ -22,7 +24,13 @@ Banca web para partidas de Monopoly. Permite crear una partida, invitar jugadore
 | --- | --- |
 | ![Inicio](docs/screenshots/home.png) | ![Banca](docs/screenshots/bank.png) |
 
+| Menú | Acerca de... |
+| --- | --- |
+| ![Menú](docs/screenshots/menu.png) | ![Acerca de](docs/screenshots/about.png) |
+
 ![Panel de jugador](docs/screenshots/player.png)
+
+![Eliminar jugador](docs/screenshots/delete.png)
 
 ## Stack
 
@@ -46,6 +54,8 @@ api/
   approve.php              Aprobar una solicitud pendiente
   reject.php               Rechazar una solicitud pendiente
   regenerate.php           Generar un enlace nuevo para un jugador
+  captcha.php              Generar un captcha de confirmación
+  delete_player.php        Eliminar un jugador y sus movimientos
   seeder.php               Aplicar el esquema por CLI
 manifest.json              Manifest PWA
 sw.js                      Service worker
@@ -137,6 +147,8 @@ python3 scripts/smoke.py --base-url https://tu-dominio.example --full
 | POST | `/api/approve.php` | Aprueba una solicitud pendiente. |
 | POST | `/api/reject.php` | Rechaza una solicitud pendiente. |
 | POST | `/api/regenerate.php` | Genera un enlace nuevo para un jugador. |
+| GET | `/api/captcha.php` | Genera un captcha aritmético de un solo uso. |
+| POST | `/api/delete_player.php` | Elimina un jugador previa validación del captcha. |
 | CLI | `php api/seeder.php` | Aplica `sql/schema.sql`. |
 
 Las respuestas usan el formato `{"ok": true, ...}` o `{"ok": false, "error": "..."}`.
@@ -151,6 +163,7 @@ Las respuestas usan el formato `{"ok": true, ...}` o `{"ok": false, "error": "..
 ## Seguridad
 
 - No hay cuentas de usuario. La Banca se protege con el código de partida y el jugador con un token bearer.
+- La eliminación de jugadores es permanente y requiere el código de partida y un captcha de confirmación.
 - No compartas el enlace personal de un jugador: quien lo tenga puede mover su dinero.
 - Usa HTTPS en producción.
 - Mantén `api/config.php` fuera del repositorio y con permisos restrictivos en el servidor.

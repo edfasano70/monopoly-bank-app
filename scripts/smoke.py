@@ -2,8 +2,10 @@
 """Verificación HTTP de Monopoly Bank (sin dependencias externas)."""
 
 import argparse
+import http.cookiejar
 import json
 import os
+import re
 import ssl
 import sys
 import time
@@ -23,6 +25,15 @@ def check(condition, label, detail=""):
         failures.append(label)
 
 
+def solve_captcha(question):
+    match = re.fullmatch(r"\s*(\d+)\s*([+-])\s*(\d+)\s*", question or "")
+    if not match:
+        return None
+    first = int(match.group(1))
+    second = int(match.group(3))
+    return first + second if match.group(2) == "+" else first - second
+
+
 class Client:
     def __init__(self, base, timeout, insecure=False):
         self.base = base.rstrip("/")
@@ -30,8 +41,10 @@ class Client:
         if insecure:
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
+        self.cookies = http.cookiejar.CookieJar()
         self.opener = urllib.request.build_opener(
-            urllib.request.HTTPSHandler(context=context)
+            urllib.request.HTTPCookieProcessor(self.cookies),
+            urllib.request.HTTPSHandler(context=context),
         )
         self.timeout = timeout
 
@@ -106,12 +119,21 @@ def basic_checks(client):
         status, _, _ = client.request("GET", path)
         check(status == 200, f"GET {path} → 200", f"(recibido {status})")
 
+    status, body, _ = client.request("GET", "/api/captcha.php")
+    data = parse(body)
+    check(
+        status == 200 and data and data.get("ok") and data.get("question"),
+        "GET /api/captcha.php → 200",
+        f"(recibido {status})",
+    )
+
 
 def full_checks(client):
     stamp = str(int(time.time()))
     code = f"SMOKE_{stamp}"
     name_a = f"SmokeA{stamp}"
     name_b = f"SmokeB{stamp}"
+    name_c = f"SmokeC{stamp}"
 
     status, body, _ = client.request(
         "POST", "/api/game.php", {"code": code, "initial_balance": 1500}
@@ -374,6 +396,145 @@ def full_checks(client):
         and data["current_player"]["id"] == id_a,
         "el token regenerado funciona",
         f"(recibido {status})",
+    )
+
+    status, body, _ = client.request(
+        "POST",
+        "/api/join.php",
+        {"game_code": code, "player_name": name_c},
+    )
+    data_c = parse(body)
+    check(
+        status == 201 and data_c and data_c.get("ok"),
+        "unir jugador C para eliminar",
+        f"(recibido {status})",
+    )
+    if not data_c or not data_c.get("ok"):
+        return code
+
+    token_c = data_c["token"]
+    id_c = data_c["player"]["id"]
+
+    status, _, _ = client.request(
+        "POST",
+        "/api/transfer.php",
+        {
+            "game_code": code,
+            "from_token": "BANK",
+            "to_player_id": id_c,
+            "amount": 10,
+            "description": "smoke C",
+        },
+    )
+    check(status == 200, "movimiento para el jugador C", f"(recibido {status})")
+
+    status, body, _ = client.request(
+        "POST",
+        "/api/transfer.php",
+        {
+            "game_code": code,
+            "from_token": token_c,
+            "to_player_id": id_a,
+            "amount": 5,
+            "description": "smoke pendiente C",
+        },
+    )
+    data = parse(body)
+    pending_c = data["pending"]["id"] if data and data.get("ok") and data.get("pending") else 0
+    check(
+        status == 202 and pending_c > 0,
+        "solicitud pendiente del jugador C",
+        f"(recibido {status})",
+    )
+
+    status, body, _ = client.request("GET", "/api/captcha.php")
+    data = parse(body)
+    answer = solve_captcha(data.get("question") if data else "")
+    check(answer is not None, "obtener captcha para eliminar", f"(recibido {data})")
+
+    wrong_answer = (answer + 1) if answer is not None else 999999
+    status, body, _ = client.request(
+        "POST",
+        "/api/delete_player.php",
+        {
+            "game_code": code,
+            "player_id": id_c,
+            "captcha_answer": wrong_answer,
+        },
+    )
+    data = parse(body)
+    check(
+        status == 400 and not (data or {}).get("ok"),
+        "captcha incorrecto no elimina",
+        f"(recibido {status})",
+    )
+
+    status, _, _ = client.request("GET", f"/api/status.php?token={token_c}")
+    check(
+        status == 200,
+        "el jugador C sigue existiendo tras captcha incorrecto",
+        f"(recibido {status})",
+    )
+
+    status, body, _ = client.request("GET", "/api/captcha.php")
+    data = parse(body)
+    answer = solve_captcha(data.get("question") if data else "")
+    check(answer is not None, "obtener nuevo captcha para eliminar", f"(recibido {data})")
+
+    status, body, _ = client.request(
+        "POST",
+        "/api/delete_player.php",
+        {
+            "game_code": code,
+            "player_id": id_c,
+            "captcha_answer": answer,
+        },
+    )
+    data = parse(body)
+    check(
+        status == 200 and data and data.get("ok"),
+        "eliminar jugador C con captcha correcto",
+        f"(recibido {status})",
+    )
+
+    status, _, _ = client.request("GET", f"/api/status.php?token={token_c}")
+    check(
+        status == 404,
+        "el jugador eliminado ya no puede entrar → 404",
+        f"(recibido {status})",
+    )
+
+    status, body, _ = client.request("GET", f"/api/status.php?code={code}")
+    data = parse(body)
+    players_now = data.get("players", []) if data and data.get("ok") else []
+    pending_now = data.get("pending", []) if data and data.get("ok") else []
+    transactions_now = data.get("transactions", []) if data and data.get("ok") else []
+    balances_now = {p["id"]: p["balance"] for p in players_now}
+    check(
+        all(p["id"] != id_c for p in players_now),
+        "el jugador eliminado sale de la lista",
+        f"(recibido {players_now})",
+    )
+    check(
+        all(
+            p["from_player_id"] != id_c and p["to_player_id"] != id_c
+            for p in pending_now
+        ),
+        "sus solicitudes pendientes se eliminan",
+        f"(recibido {pending_now})",
+    )
+    check(
+        all(
+            t["from_player_id"] != id_c and t["to_player_id"] != id_c
+            for t in transactions_now
+        ),
+        "sus movimientos se eliminan",
+        f"(recibido {transactions_now})",
+    )
+    check(
+        balances_now.get(id_a) == 1520 and balances_now.get(id_b) == 1555,
+        "los saldos de A y B no cambian al eliminar C",
+        f"(recibido {balances_now})",
     )
 
     return code

@@ -124,6 +124,163 @@
     }
   }
 
+  function qrSvg(text, alt, title) {
+    if (typeof window.qrcode !== 'function') {
+      return '';
+    }
+    try {
+      const qr = window.qrcode(0, 'M');
+      qr.addData(text);
+      qr.make();
+      return qr.createSvgTag({
+        cellSize: 6,
+        margin: 24,
+        scalable: true,
+        alt: alt || 'Código QR',
+        title: title || 'Invitación a Monopoly',
+      });
+    } catch (err) {
+      return '';
+    }
+  }
+
+  let inviteModalLink = '';
+
+  function openInviteModal(code) {
+    const modal = document.getElementById('invite-modal');
+    if (!modal) {
+      return;
+    }
+    if (!code) {
+      toast('La partida todavía no está lista', 'error');
+      return;
+    }
+
+    const link = location.origin + base + '/?join=' + encodeURIComponent(code);
+    inviteModalLink = link;
+
+    const qrBox = document.getElementById('invite-modal-qr');
+    const url = document.getElementById('invite-modal-url');
+    if (qrBox) {
+      const svg = qrSvg(link, 'Código QR de invitación', 'Invitación a Monopoly');
+      qrBox.innerHTML = svg || '<p class="p-2 text-center text-xs text-slate-500">QR no disponible</p>';
+    }
+    if (url) {
+      url.textContent = link;
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    const close = document.getElementById('invite-modal-close');
+    if (close) {
+      close.focus();
+    }
+  }
+
+  function closeInviteModal() {
+    const modal = document.getElementById('invite-modal');
+    if (!modal) {
+      return;
+    }
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+    const qrBox = document.getElementById('invite-modal-qr');
+    const url = document.getElementById('invite-modal-url');
+    if (qrBox) {
+      qrBox.innerHTML = '';
+    }
+    if (url) {
+      url.textContent = '';
+    }
+    inviteModalLink = '';
+  }
+
+  function setupInviteModal() {
+    const modal = document.getElementById('invite-modal');
+    if (!modal) {
+      return;
+    }
+    const close = document.getElementById('invite-modal-close');
+    const ok = document.getElementById('invite-modal-ok');
+    const copyButton = document.getElementById('invite-modal-copy');
+
+    if (close) {
+      close.addEventListener('click', closeInviteModal);
+    }
+    if (ok) {
+      ok.addEventListener('click', closeInviteModal);
+    }
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal) {
+        closeInviteModal();
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeInviteModal();
+      }
+    });
+    if (copyButton) {
+      copyButton.addEventListener('click', function () {
+        if (inviteModalLink) {
+          copy(inviteModalLink);
+        }
+      });
+    }
+  }
+
+  function openAboutModal() {
+    const modal = document.getElementById('about-modal');
+    if (!modal) {
+      return;
+    }
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    const close = document.getElementById('about-modal-close');
+    if (close) {
+      close.focus();
+    }
+  }
+
+  function closeAboutModal() {
+    const modal = document.getElementById('about-modal');
+    if (!modal) {
+      return;
+    }
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  function setupAboutModal() {
+    const modal = document.getElementById('about-modal');
+    if (!modal) {
+      return;
+    }
+    const close = document.getElementById('about-modal-close');
+    const ok = document.getElementById('about-modal-ok');
+
+    if (close) {
+      close.addEventListener('click', closeAboutModal);
+    }
+    if (ok) {
+      ok.addEventListener('click', closeAboutModal);
+    }
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal) {
+        closeAboutModal();
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeAboutModal();
+      }
+    });
+  }
+
   const PLAYER_KEY_PREFIX = 'monopoly.player.';
 
   function playerSessionKey(code) {
@@ -202,8 +359,8 @@
   function bootHome() {
     const app = document.getElementById('app');
     app.innerHTML = pageShell(
-      '<header class="mb-8">' +
-        '<img src="' + base + '/icon.png" alt="Monopoly Wallet" class="mb-4 h-20 w-20 rounded-2xl shadow-lg" />' +
+      '<header class="mb-8 text-center">' +
+        '<img src="' + base + '/icon.png" alt="Monopoly Wallet" class="mx-auto mb-5 h-32 w-32 rounded-3xl shadow-xl" />' +
         '<p class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400">Monopoly</p>' +
         '<h1 class="mt-2 text-3xl font-black tracking-tight">Banca del juego</h1>' +
         '<p class="mt-2 text-sm text-slate-400">Crea la partida con el código del tablero y comparte el enlace de invitación con los jugadores.</p>' +
@@ -373,6 +530,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    setupInviteModal();
+    setupAboutModal();
     if (config.view === 'home') {
       bootHome();
     } else if (config.view === 'join') {
@@ -388,6 +547,9 @@
     toast: toast,
     startPolling: startPolling,
     copy: copy,
+    qrSvg: qrSvg,
+    openInviteModal: openInviteModal,
+    openAboutModal: openAboutModal,
     savePlayerSession: savePlayerSession,
     getPlayerSession: getPlayerSession,
     clearPlayerSessionByToken: clearPlayerSessionByToken,

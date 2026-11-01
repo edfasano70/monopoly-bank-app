@@ -28,6 +28,8 @@ required=(
   api/approve.php
   api/reject.php
   api/regenerate.php
+  api/captcha.php
+  api/delete_player.php
   api/config.example.php
   sql/schema.sql
   deploy.sh

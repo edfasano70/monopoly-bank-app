@@ -39,19 +39,17 @@
             '<h1 class="mt-2 text-2xl font-black tracking-tight">Partida <span id="game-code" class="font-mono text-emerald-300">' + M.esc(code) + '</span></h1>' +
             '<p id="game-status" class="mt-1 text-xs text-slate-400">Cargando estado...</p>' +
           '</div>' +
-          '<a href="' + M.base + '/" class="rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-900">Inicio</a>' +
-        '</header>' +
-        '<section class="rounded-2xl bg-white p-4 text-slate-900 shadow-xl">' +
-          '<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Enlace de invitación</p>' +
-          '<div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center">' +
-            '<div class="min-w-0 flex-1">' +
-              '<p id="invite-url" class="break-all font-mono text-xs text-slate-700"></p>' +
-              '<button id="copy-invite" type="button" class="mt-3 rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Copiar enlace</button>' +
-              '<p class="mt-3 text-xs text-slate-500">Escanea el QR o comparte el enlace para que cada jugador se registre.</p>' +
+          '<div class="relative">' +
+            '<button id="menu-button" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu-panel" class="rounded-xl border border-slate-700 p-2 text-slate-300 hover:bg-slate-900">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>' +
+            '</button>' +
+            '<div id="menu-panel" class="absolute right-0 z-40 mt-2 hidden w-60 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-xl">' +
+              '<a href="' + M.base + '/" class="block px-4 py-3 text-sm text-slate-200 hover:bg-slate-800">Ir a inicio</a>' +
+              '<button id="menu-invite" type="button" class="block w-full px-4 py-3 text-left text-sm text-slate-200 hover:bg-slate-800">Mostrar enlace de invitación</button>' +
+              '<button id="menu-about" type="button" class="block w-full px-4 py-3 text-left text-sm text-slate-200 hover:bg-slate-800">Acerca de...</button>' +
             '</div>' +
-            '<div id="qr-box" class="flex h-44 w-44 shrink-0 items-center justify-center self-center rounded-xl border border-slate-200 bg-white p-2"></div>' +
           '</div>' +
-        '</section>' +
+        '</header>' +
         '<section class="rounded-2xl bg-white p-4 text-slate-900 shadow-xl">' +
           '<div class="mb-3 flex items-center justify-between gap-3">' +
             '<h2 class="font-semibold">Transacciones pendientes</h2>' +
@@ -65,7 +63,7 @@
           '<div class="overflow-x-auto">' +
             '<table class="w-full text-sm">' +
               '<thead><tr class="text-left text-xs uppercase tracking-wide text-slate-500">' +
-                '<th class="py-2">Jugador</th><th class="py-2 text-right">Saldo</th><th class="py-2 text-right">Acceso</th>' +
+                '<th class="py-2">Jugador</th><th class="py-2 text-right">Saldo</th><th class="py-2 text-right">Acciones</th>' +
               '</tr></thead>' +
               '<tbody id="players-body">' +
                 '<tr><td colspan="3" class="py-3 text-slate-500">Cargando...</td></tr>' +
@@ -144,44 +142,29 @@
           '</div>' +
           '<p class="mt-3 text-xs text-slate-500">Muéstrale este QR al jugador o comparte el enlace. El enlace anterior ya no funciona.</p>' +
         '</div>' +
+      '</div>' +
+      '<div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 p-4">' +
+        '<div class="w-full max-w-sm rounded-2xl bg-white p-5 text-slate-900 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">' +
+          '<div class="flex items-start justify-between gap-3">' +
+            '<div>' +
+              '<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Eliminar jugador</p>' +
+              '<h2 id="delete-modal-title" class="mt-1 text-lg font-bold">Confirmar eliminación</h2>' +
+            '</div>' +
+            '<button id="delete-modal-close" type="button" class="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50">Cerrar</button>' +
+          '</div>' +
+          '<p id="delete-modal-text" class="mt-4 text-sm leading-relaxed text-slate-600"></p>' +
+          '<div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">' +
+            '<p class="text-xs font-semibold uppercase tracking-wide text-amber-800">Captcha de confirmación</p>' +
+            '<p id="delete-captcha-question" class="mt-1 font-mono text-base text-slate-800">Cargando...</p>' +
+            '<input id="delete-captcha-answer" type="number" inputmode="numeric" autocomplete="off" placeholder="Tu respuesta" class="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-base outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" />' +
+          '</div>' +
+          '<p id="delete-modal-error" class="mt-2 hidden text-xs text-red-600"></p>' +
+          '<div class="mt-4 grid grid-cols-2 gap-3">' +
+            '<button id="delete-modal-cancel" type="button" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</button>' +
+            '<button id="delete-modal-confirm" type="button" class="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60">Eliminar</button>' +
+          '</div>' +
+        '</div>' +
       '</div>';
-
-    const inviteUrl = location.origin + M.base + '/?join=' + encodeURIComponent(code);
-    document.getElementById('invite-url').textContent = inviteUrl;
-    document.getElementById('copy-invite').addEventListener('click', function () {
-      M.copy(inviteUrl);
-    });
-
-    function qrSvg(text, alt, title) {
-      if (typeof window.qrcode !== 'function') {
-        return '';
-      }
-      try {
-        const qr = window.qrcode(0, 'M');
-        qr.addData(text);
-        qr.make();
-        return qr.createSvgTag({
-          cellSize: 6,
-          margin: 24,
-          scalable: true,
-          alt: alt || 'Código QR',
-          title: title || 'Invitación a Monopoly',
-        });
-      } catch (err) {
-        return '';
-      }
-    }
-
-    function renderQr(text) {
-      const box = document.getElementById('qr-box');
-      if (!box) {
-        return;
-      }
-      const svg = qrSvg(text, 'Código QR para unirse a la partida', 'Invitación a Monopoly');
-      box.innerHTML = svg || '<p class="p-2 text-center text-xs text-slate-500">QR no disponible</p>';
-    }
-
-    renderQr(inviteUrl);
 
     const form = document.getElementById('transfer-form');
     const reasonSelect = form.querySelector('[name="reason"]');
@@ -208,17 +191,32 @@
     const modalCopy = document.getElementById('link-modal-copy');
     const modalClose = document.getElementById('link-modal-close');
     const modalOk = document.getElementById('link-modal-ok');
+    const menuButton = document.getElementById('menu-button');
+    const menuPanel = document.getElementById('menu-panel');
+    const menuInvite = document.getElementById('menu-invite');
+    const menuAbout = document.getElementById('menu-about');
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteText = document.getElementById('delete-modal-text');
+    const deleteQuestion = document.getElementById('delete-captcha-question');
+    const deleteAnswer = document.getElementById('delete-captcha-answer');
+    const deleteError = document.getElementById('delete-modal-error');
+    const deleteConfirm = document.getElementById('delete-modal-confirm');
+    const deleteCancel = document.getElementById('delete-modal-cancel');
+    const deleteClose = document.getElementById('delete-modal-close');
 
     let players = [];
     let pending = [];
     let state = null;
     let busy = false;
     let modalLink = '';
+    let deletePlayerId = 0;
+    let deleteBusy = false;
+    let deleteCaptchaReady = false;
 
     function openLinkModal(link, playerName) {
       modalLink = link;
       modalTitle.textContent = 'Acceso de ' + playerName;
-      const svg = qrSvg(
+      const svg = M.qrSvg(
         link,
         'Código QR de acceso de ' + playerName,
         'Acceso a la partida'
@@ -256,6 +254,153 @@
     modalCopy.addEventListener('click', function () {
       if (modalLink) {
         M.copy(modalLink);
+      }
+    });
+
+    function closeMenu() {
+      menuPanel.classList.add('hidden');
+      menuButton.setAttribute('aria-expanded', 'false');
+    }
+
+    menuButton.addEventListener('click', function () {
+      const hidden = menuPanel.classList.toggle('hidden');
+      menuButton.setAttribute('aria-expanded', String(!hidden));
+    });
+    document.addEventListener('click', function (event) {
+      if (
+        !menuPanel.classList.contains('hidden') &&
+        !menuPanel.contains(event.target) &&
+        !menuButton.contains(event.target)
+      ) {
+        closeMenu();
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeMenu();
+      }
+    });
+    menuInvite.addEventListener('click', function () {
+      closeMenu();
+      M.openInviteModal(code);
+    });
+    menuAbout.addEventListener('click', function () {
+      closeMenu();
+      M.openAboutModal();
+    });
+
+    function showDeleteError(message) {
+      deleteError.textContent = message;
+      deleteError.classList.remove('hidden');
+    }
+
+    async function loadDeleteCaptcha() {
+      deleteCaptchaReady = false;
+      deleteConfirm.disabled = true;
+      deleteQuestion.textContent = 'Cargando...';
+      deleteError.classList.add('hidden');
+      deleteError.textContent = '';
+
+      try {
+        const data = await M.api('captcha.php');
+        if (!data || !data.question) {
+          throw new Error('No se pudo cargar el captcha');
+        }
+        deleteQuestion.textContent = '¿Cuánto es ' + data.question + '?';
+        deleteCaptchaReady = true;
+        deleteConfirm.disabled = deleteBusy;
+        deleteAnswer.focus();
+      } catch (err) {
+        deleteQuestion.textContent = 'No se pudo cargar el captcha';
+        showDeleteError(err.message);
+      }
+    }
+
+    function openDeleteModal(playerId, playerName) {
+      deletePlayerId = playerId;
+      deleteText.textContent =
+        'Se eliminará a ' + playerName + ' y todos sus movimientos. Esta acción no se puede deshacer.';
+      deleteAnswer.value = '';
+      deleteBusy = false;
+      deleteConfirm.textContent = 'Eliminar';
+      deleteConfirm.disabled = true;
+      deleteError.classList.add('hidden');
+      deleteError.textContent = '';
+      deleteModal.classList.remove('hidden');
+      deleteModal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+      deleteClose.focus();
+      loadDeleteCaptcha();
+    }
+
+    function closeDeleteModal() {
+      deleteModal.classList.add('hidden');
+      deleteModal.classList.remove('flex');
+      document.body.style.overflow = '';
+      deletePlayerId = 0;
+      deleteBusy = false;
+      deleteCaptchaReady = false;
+      deleteQuestion.textContent = 'Cargando...';
+      deleteAnswer.value = '';
+      deleteError.classList.add('hidden');
+      deleteError.textContent = '';
+      deleteConfirm.textContent = 'Eliminar';
+      deleteConfirm.disabled = true;
+    }
+
+    deleteClose.addEventListener('click', closeDeleteModal);
+    deleteCancel.addEventListener('click', closeDeleteModal);
+    deleteModal.addEventListener('click', function (event) {
+      if (event.target === deleteModal) {
+        closeDeleteModal();
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !deleteModal.classList.contains('hidden')) {
+        closeDeleteModal();
+      }
+    });
+    deleteAnswer.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        deleteConfirm.click();
+      }
+    });
+
+    deleteConfirm.addEventListener('click', async function () {
+      if (deleteBusy || !deleteCaptchaReady || !deletePlayerId) {
+        return;
+      }
+      const answer = parseInt(deleteAnswer.value, 10);
+      if (isNaN(answer)) {
+        showDeleteError('Ingresa la respuesta del captcha');
+        deleteAnswer.focus();
+        return;
+      }
+
+      deleteBusy = true;
+      deleteConfirm.disabled = true;
+      deleteConfirm.textContent = 'Eliminando...';
+
+      try {
+        await M.api('delete_player.php', {
+          method: 'POST',
+          body: {
+            game_code: code,
+            player_id: deletePlayerId,
+            captcha_answer: answer,
+          },
+        });
+        closeDeleteModal();
+        M.toast('Jugador eliminado');
+        await refresh();
+      } catch (err) {
+        showDeleteError(err.message);
+        deleteAnswer.value = '';
+        await loadDeleteCaptcha();
+      } finally {
+        deleteBusy = false;
+        deleteConfirm.textContent = 'Eliminar';
+        deleteConfirm.disabled = !deleteCaptchaReady;
       }
     });
 
@@ -424,7 +569,10 @@
             '<td class="py-2 pr-3 font-medium">' + M.esc(p.name) + '</td>' +
             '<td class="py-2 text-right font-mono font-semibold">' + M.money(p.balance) + '</td>' +
             '<td class="py-2 pl-3 text-right">' +
-              '<button type="button" data-player-id="' + p.id + '" data-player-name="' + M.esc(p.name) + '" class="whitespace-nowrap rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50">Nuevo enlace</button>' +
+              '<div class="flex justify-end gap-2">' +
+                '<button type="button" data-regen-id="' + p.id + '" data-player-name="' + M.esc(p.name) + '" class="whitespace-nowrap rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50">Nuevo enlace</button>' +
+                '<button type="button" data-delete-id="' + p.id + '" data-player-name="' + M.esc(p.name) + '" class="whitespace-nowrap rounded-lg border border-red-200 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50">Eliminar</button>' +
+              '</div>' +
             '</td>' +
             '</tr>'
           );
@@ -512,11 +660,11 @@
     });
 
     playersBody.addEventListener('click', async function (event) {
-      const button = event.target.closest('button[data-player-id]');
+      const button = event.target.closest('button[data-regen-id]');
       if (!button || button.disabled) {
         return;
       }
-      const playerId = parseInt(button.getAttribute('data-player-id'), 10);
+      const playerId = parseInt(button.getAttribute('data-regen-id'), 10);
       const playerName = button.getAttribute('data-player-name') || 'este jugador';
       if (!playerId) {
         return;
@@ -537,6 +685,19 @@
       } finally {
         button.disabled = false;
       }
+    });
+
+    playersBody.addEventListener('click', function (event) {
+      const button = event.target.closest('button[data-delete-id]');
+      if (!button) {
+        return;
+      }
+      const playerId = parseInt(button.getAttribute('data-delete-id'), 10);
+      const playerName = button.getAttribute('data-player-name') || 'este jugador';
+      if (!playerId) {
+        return;
+      }
+      openDeleteModal(playerId, playerName);
     });
 
     form.addEventListener('submit', async function (event) {
