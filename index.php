@@ -34,7 +34,7 @@ $config = [
     'base'  => $base,
 ];
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_INVALID_UTF8_SUBSTITUTE;
-$v = '1.0.6';
+$v = '1.0.7';
 ?>
 <!doctype html>
 <html lang="es">

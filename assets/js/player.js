@@ -33,20 +33,19 @@
     app.innerHTML =
       '<main class="min-h-screen bg-slate-950 text-slate-100">' +
       '<div class="mx-auto w-full max-w-md space-y-5 px-4 py-8">' +
-        '<header class="flex items-start justify-between gap-3">' +
+        '<header>' +
           '<div>' +
-            '<p class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400">Mi panel</p>' +
+            '<p class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400">Mi Wallet Monopoly</p>' +
             '<h1 class="mt-2 text-2xl font-black tracking-tight" id="player-name">Cargando...</h1>' +
             '<p id="game-status" class="mt-1 text-xs text-slate-400">Partida <span id="game-code" class="font-mono text-emerald-300">' + M.esc((config.code || '').toUpperCase()) + '</span></p>' +
           '</div>' +
-          '<a href="' + M.base + '/" class="rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-900">Inicio</a>' +
         '</header>' +
         '<section class="rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-5 text-white shadow-xl">' +
           '<p class="text-xs font-semibold uppercase tracking-wide text-emerald-100">Saldo disponible</p>' +
           '<p id="balance" class="mt-1 font-mono text-5xl font-black tracking-tight">$0</p>' +
         '</section>' +
         '<section id="pending-card" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 shadow-xl">' +
-          '<h2 class="font-semibold">Pendiente de aprobación</h2>' +
+          '<h2 class="font-semibold">Transacciones pendientes</h2>' +
           '<div id="pending-list" class="mt-2 space-y-2 text-sm"></div>' +
         '</section>' +
         '<section class="rounded-2xl bg-white p-4 text-slate-900 shadow-xl">' +

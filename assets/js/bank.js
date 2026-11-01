@@ -35,7 +35,7 @@
       '<div class="mx-auto w-full max-w-3xl space-y-5 px-4 py-8">' +
         '<header class="flex flex-wrap items-start justify-between gap-3">' +
           '<div>' +
-            '<p class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400">Banca</p>' +
+            '<p class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400">Banca Monopoly</p>' +
             '<h1 class="mt-2 text-2xl font-black tracking-tight">Partida <span id="game-code" class="font-mono text-emerald-300">' + M.esc(code) + '</span></h1>' +
             '<p id="game-status" class="mt-1 text-xs text-slate-400">Cargando estado...</p>' +
           '</div>' +
@@ -54,7 +54,7 @@
         '</section>' +
         '<section class="rounded-2xl bg-white p-4 text-slate-900 shadow-xl">' +
           '<div class="mb-3 flex items-center justify-between gap-3">' +
-            '<h2 class="font-semibold">Pendientes de aprobación</h2>' +
+            '<h2 class="font-semibold">Transacciones pendientes</h2>' +
             '<span id="pending-count" class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">0</span>' +
           '</div>' +
           '<div id="pending-list" class="space-y-2 text-sm"><p class="text-slate-500">Sin solicitudes pendientes.</p></div>' +
