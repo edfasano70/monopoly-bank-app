@@ -31,6 +31,15 @@ required=(
   api/config.example.php
   sql/schema.sql
   deploy.sh
+  manifest.json
+  sw.js
+  offline.html
+  icon.png
+  icon-192.png
+  icon-512.png
+  icon-180.png
+  icon-maskable-192.png
+  icon-maskable-512.png
   assets/tailwind.js
   assets/js/qrcode.js
   assets/js/reasons.js
@@ -60,7 +69,7 @@ for table in games players transactions; do
 done
 
 if command -v node >/dev/null 2>&1; then
-  for f in assets/js/*.js; do
+  for f in assets/js/*.js sw.js; do
     if node --check "$f"; then
       ok "JS $f"
     else
@@ -102,6 +111,11 @@ for f in deploy.sh scripts/*.sh; do
 done
 
 if command -v python3 >/dev/null 2>&1; then
+  if python3 -c 'import json; json.load(open("manifest.json"))'; then
+    ok "manifest.json"
+  else
+    bad "manifest.json"
+  fi
   if python3 -m py_compile scripts/smoke.py; then
     ok "python scripts/smoke.py"
     rm -rf scripts/__pycache__

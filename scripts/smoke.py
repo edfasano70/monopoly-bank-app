@@ -84,6 +84,28 @@ def basic_checks(client):
     status, _, _ = client.request("GET", "/api/status.php?token=" + "0" * 32)
     check(status == 404, "GET /api/status.php?token=inválido → 404", f"(recibido {status})")
 
+    status, body, _ = client.request("GET", "/manifest.json")
+    manifest = parse(body)
+    check(
+        status == 200
+        and manifest is not None
+        and bool(manifest.get("name"))
+        and len(manifest.get("icons", [])) >= 2,
+        "GET /manifest.json → 200 con íconos",
+        f"(recibido {status})",
+    )
+
+    status, body, _ = client.request("GET", "/sw.js")
+    check(
+        status == 200 and b"CACHE_NAME" in body,
+        "GET /sw.js → 200",
+        f"(recibido {status})",
+    )
+
+    for path in ["/icon.png", "/icon-192.png", "/icon-512.png", "/offline.html"]:
+        status, _, _ = client.request("GET", path)
+        check(status == 200, f"GET {path} → 200", f"(recibido {status})")
+
 
 def full_checks(client):
     stamp = str(int(time.time()))

@@ -13,6 +13,7 @@ Banca web para partidas de Monopoly. Permite crear una partida, invitar jugadore
 - Las transferencias entre jugadores iniciadas por un jugador quedan pendientes hasta que la Banca las apruebe o rechace.
 - Recuperación de acceso: el navegador recuerda el jugador en el mismo dispositivo y la Banca puede generar un enlace nuevo (con QR) si se perdió.
 - Actualización automática cada 3 segundos mediante polling.
+- PWA instalable con manifest, service worker y página offline.
 - Sin framework, sin compilación y sin dependencias de frontend externas.
 
 ## Capturas
@@ -29,6 +30,7 @@ Banca web para partidas de Monopoly. Permite crear una partida, invitar jugadore
 - **Base de datos:** MySQL 8 / InnoDB.
 - **Frontend:** HTML, JavaScript vanilla y Tailwind CSS servido localmente.
 - **QR:** `qrcode-generator` (MIT), incluido en `assets/js/qrcode.js`.
+- **PWA:** manifest, service worker y página offline; el ícono se usa como favicon y en las pantallas de inicio/alta.
 - **Despliegue:** Apache con PHP; no requiere `npm`, `composer` ni paso de compilación.
 
 ## Estructura
@@ -45,6 +47,14 @@ api/
   reject.php               Rechazar una solicitud pendiente
   regenerate.php           Generar un enlace nuevo para un jugador
   seeder.php               Aplicar el esquema por CLI
+manifest.json              Manifest PWA
+sw.js                      Service worker
+offline.html               Página sin conexión
+icon.png                   Ícono y favicon
+icon-192.png               Ícono PWA 192x192
+icon-512.png               Ícono PWA 512x512
+icon-180.png               Ícono para iOS
+icon-maskable-*.png        Íconos maskable
 assets/
   tailwind.js              Tailwind local
   js/common.js             Utilidades y vistas de inicio/alta
@@ -64,7 +74,7 @@ deploy.sh                  Despliegue por rsync
 
 - PHP 8.1 o superior con `pdo_mysql` y `mbstring`.
 - MySQL 8 o superior.
-- Apache (o cualquier servidor que ejecute PHP) con HTTPS recomendado.
+- Apache (o cualquier servidor que ejecute PHP) con HTTPS. El service worker y la instalación de la PWA requieren un contexto seguro (salvo `localhost`).
 
 ### Pasos
 

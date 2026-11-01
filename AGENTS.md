@@ -10,6 +10,7 @@ Banca web para Monopoly: PHP 8 nativo + PDO/MySQL (InnoDB), JS vanilla y Tailwin
 - `assets/js/common.js` (helpers + inicio/alta), `bank.js`, `player.js`; polling cada 3 s.
 - `assets/js/qrcode.js` (qrcode-generator, MIT) genera el QR del enlace de invitación **en el cliente**; no usar APIs de QR externas.
 - `assets/js/reasons.js` agrupa los motivos en tres flujos: **Banca→Jugador**, **Jugador→Banca** y **Jugador→Jugador**. La Banca puede registrar los tres; el panel del jugador solo muestra los dos últimos.
+- PWA: `manifest.json`, `sw.js`, `offline.html` e íconos (`icon.png`, `icon-192.png`, `icon-512.png`, `icon-180.png`, `icon-maskable-*.png`). El ícono se usa como favicon y en las portadas de inicio/alta.
 - `api/`: `game.php`, `join.php`, `transfer.php`, `status.php`, `approve.php`, `reject.php`, `regenerate.php`, `seeder.php` (CLI) y `conexion.php` (`getPDO`, `jsonResponse`, `readJsonBody`, `normalizeCode`, `isValidCode`).
 - Recuperación de acceso: el token se guarda en `localStorage` por código de partida; `?join=` ofrece “Continuar” en el mismo dispositivo. Si se perdió, la Banca regenera el enlace del jugador (`POST /api/regenerate.php`, invalida el anterior) y lo muestra como QR en un popup.
 - `sql/schema.sql`: `games`, `players`, `transactions`, `pending_transfers`. `NULL` en `from_player_id`/`to_player_id` = Banca; `UNIQUE(game_id, name)`; `CHECK(amount > 0)`.
@@ -44,6 +45,7 @@ Leer `../saludable/GUIA_MULTI_APP.md` antes de tocar el servidor.
 ## Gotchas
 
 - **No hay PHP CLI local** y **no usar Docker** (pedido explícito). `check.sh` omite el lint PHP; validar en el servidor con `php -l` o instalando `php-cli`.
+- PWA: al cambiar assets, subir `$v` en `index.php` y `VERSION`/`CACHE_NAME` en `sw.js`. El SW hace SWR de estáticos, network-only de `/api/` y network-first de navegación con fallback a `/offline.html`; requiere HTTPS (salvo localhost).
 - Nunca leer, copiar ni versionar secretos de `../saludable/api/config.php`; generar la config de `monopoly` en el servidor.
 - UI en español neutro (sin voseo). Escapar nombres/descripciones con `esc()` o `textContent` (XSS).
 - No hay auth: la banca se protege solo con el código de partida; el token del jugador es una credencial bearer (no compartirlo).

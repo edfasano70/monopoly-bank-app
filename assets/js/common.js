@@ -203,6 +203,7 @@
     const app = document.getElementById('app');
     app.innerHTML = pageShell(
       '<header class="mb-8">' +
+        '<img src="' + base + '/icon.png" alt="Monopoly Wallet" class="mb-4 h-20 w-20 rounded-2xl shadow-lg" />' +
         '<p class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400">Monopoly</p>' +
         '<h1 class="mt-2 text-3xl font-black tracking-tight">Banca del juego</h1>' +
         '<p class="mt-2 text-sm text-slate-400">Crea la partida con el código del tablero y comparte el enlace de invitación con los jugadores.</p>' +
@@ -294,6 +295,7 @@
 
     app.innerHTML = pageShell(
       '<header class="mb-8">' +
+        '<img src="' + base + '/icon.png" alt="Monopoly Wallet" class="mb-4 h-16 w-16 rounded-2xl shadow-lg" />' +
         '<p class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400">Monopoly</p>' +
         '<h1 class="mt-2 text-3xl font-black tracking-tight">Unirse a la partida</h1>' +
         '<p class="mt-2 text-sm text-slate-400">Código del tablero: <span class="font-mono font-semibold text-emerald-300">' + esc(code) + '</span></p>' +
